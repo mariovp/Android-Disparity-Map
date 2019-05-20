@@ -1,26 +1,26 @@
 package com.valpa.disparitymap
 
 
-import android.hardware.Camera
-import android.hardware.camera2.CameraCaptureSession
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_fullscreen.*
-import org.opencv.android.BaseLoaderCallback
-import org.opencv.android.CameraBridgeViewBase
-import org.opencv.android.LoaderCallbackInterface
-import org.opencv.android.OpenCVLoader
+import org.opencv.android.*
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.imgcodecs.Imgcodecs
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2, Camera.PictureCallback {
+class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2 {
     private val mHideHandler = Handler()
     private val mHidePart2Runnable = Runnable {
         // Delayed removal of status and navigation bar
@@ -58,7 +58,7 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
     var mRgbaF: Mat? = null
     var mRgbaT: Mat? = null
 
-    private lateinit var mOpenCvCameraView: CameraBridgeViewBase
+    private lateinit var mOpenCvCameraView: JavaCameraView
 
     private val mLoaderCallback: BaseLoaderCallback = object: BaseLoaderCallback(this) {
         override fun onManagerConnected(status: Int) {
@@ -87,6 +87,7 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
         mOpenCvCameraView = findViewById(R.id.cameraView)
         mOpenCvCameraView.setCameraIndex(0)
         mOpenCvCameraView.setCvCameraViewListener(this)
+        fab_take_photo.setOnClickListener { takePhoto() }
     }
 
     public override fun onResume() {
@@ -164,13 +165,14 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
         return mRgba!!
     }
 
-    val captureCallback = object: CameraCaptureSession.CaptureCallback() {
-
-    }
-
-
-    override fun onPictureTaken(data: ByteArray?, camera: Camera?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    private fun takePhoto() {
+        val sdf = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+        val currentDateandTime = sdf.format(Date())
+        val fileName = Environment.getExternalStorageDirectory().getPath() +
+                "/sample_picture_" + currentDateandTime + ".jpg"
+        Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show()
+        val filename = "/storage/emulated/0/DCIM/Camera/samplepass.jpg"
+        Imgcodecs.imwrite(filename, mRgba)
     }
 
     companion object {
