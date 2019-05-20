@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:background="#0099cc"
+             xmlns:opencv="http://schemas.android.com/apk/res-auto"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             tools:context=".FullscreenActivity">
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:backgroundTint="@color/gray"
+            app:srcCompat="@android:drawable/ic_menu_camera"
+            android:layout_gravity="end|center_vertical"
+            android:layout_margin="8dp"
+            android:id="@+id/fab_take_photo"
+            android:focusable="true"/>
+
+    <org.opencv.android.JavaCameraView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible"
+            android:id="@+id/cameraView"
+            opencv:show_fps="true"
+            opencv:camera_id="any" />
+
+</FrameLayout>
