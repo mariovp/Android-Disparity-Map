@@ -9,11 +9,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_fullscreen.*
 import org.opencv.android.*
-import org.opencv.core.CvType
-import org.opencv.core.Mat
+import org.opencv.core.*
+import org.opencv.features2d.DescriptorMatcher
+import org.opencv.features2d.Features2d
+import org.opencv.features2d.ORB
 import org.opencv.imgcodecs.Imgcodecs
+import org.opencv.imgproc.Imgproc
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 /**
@@ -58,6 +62,10 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
     var mRgbaF: Mat? = null
     var mRgbaT: Mat? = null
 
+    var isFirstImage: Boolean = true
+    var img1: Mat? = null
+    var img2: Mat? = null
+
     private lateinit var mOpenCvCameraView: JavaCameraView
 
     private val mLoaderCallback: BaseLoaderCallback = object: BaseLoaderCallback(this) {
@@ -87,7 +95,7 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
         mOpenCvCameraView = findViewById(R.id.cameraView)
         mOpenCvCameraView.setCameraIndex(0)
         mOpenCvCameraView.setCvCameraViewListener(this)
-        fab_take_photo.setOnClickListener { takePhoto() }
+        fab_take_photo.setOnClickListener { takeImage() }
     }
 
     public override fun onResume() {
@@ -165,14 +173,67 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
         return mRgba!!
     }
 
-    private fun takePhoto() {
-        val sdf = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+    private fun takeImage() {
+        if (isFirstImage) {
+            img1 = mRgba
+            isFirstImage = false
+            Toast.makeText(this, "Took photo 1", Toast.LENGTH_SHORT).show()
+        }
+
+        else {
+            img2 = mRgba
+            isFirstImage = true
+            Toast.makeText(this, "Took photo 2", Toast.LENGTH_SHORT).show()
+            calculateHomography(img1!!, img2!!)
+        }
+    }
+
+    private fun calculateHomography(img1: Mat, img2: Mat) {
+
+        val MAX_FEATURES = 100
+        val GOOD_MATCH_PERCENT = 0.15f
+
+        val img1Gray = Mat()
+        val img2Gray = Mat()
+
+        Imgproc.cvtColor(img1, img1Gray, Imgproc.COLOR_RGB2GRAY)
+        Imgproc.cvtColor(img2, img2Gray, Imgproc.COLOR_RGB2GRAY)
+
+        val keypoints1 = MatOfKeyPoint()
+        val keypoints2 = MatOfKeyPoint()
+
+        val descriptors1 = Mat()
+        val descriptors2 = Mat()
+
+        val orb = ORB.create(MAX_FEATURES)
+        orb.detectAndCompute(img1Gray, Mat(), keypoints1, descriptors1)
+        orb.detectAndCompute(img2Gray, Mat(), keypoints2, descriptors2)
+
+        var matches = MatOfDMatch()
+
+        val matcher = DescriptorMatcher.create("BruteForce-Hamming")
+        matcher.match(descriptors1, descriptors2, matches, Mat())
+
+        /*Core.sort(matches, matches, Core.SORT_DESCENDING)
+
+        val matchesSize = matches.size().height * matches.size().width
+        val numGoodMatches: Int = (matchesSize * GOOD_MATCH_PERCENT).toInt()
+
+        matches = MatOfDMatch(matches.colRange(0, numGoodMatches))*/
+
+        val imMatches = Mat()
+        Features2d.drawMatches(img1, keypoints1, img2, keypoints2, matches, imMatches)
+        savePhoto(imMatches)
+    }
+
+    private fun savePhoto(img: Mat) {
+        val sdf = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
         val currentDateandTime = sdf.format(Date())
-        val fileName = Environment.getExternalStorageDirectory().getPath() +
+        val fileName = Environment.getExternalStorageDirectory().path +
                 "/sample_picture_" + currentDateandTime + ".jpg"
-        Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "$fileName saved", Toast.LENGTH_SHORT).show()
         val filename = "/storage/emulated/0/DCIM/Camera/samplepass.jpg"
-        Imgcodecs.imwrite(filename, mRgba)
+        Imgcodecs.imwrite(filename, img)
     }
 
     companion object {
