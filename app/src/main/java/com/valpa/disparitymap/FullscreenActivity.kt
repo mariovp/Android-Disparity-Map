@@ -190,7 +190,7 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
 
     private fun calculateHomography(img1: Mat, img2: Mat) {
 
-        val MAX_FEATURES = 100
+        val MAX_FEATURES = 500
         val GOOD_MATCH_PERCENT = 0.15f
 
         val img1Gray = Mat()
@@ -209,21 +209,27 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
         orb.detectAndCompute(img1Gray, Mat(), keypoints1, descriptors1)
         orb.detectAndCompute(img2Gray, Mat(), keypoints2, descriptors2)
 
-        var matches = MatOfDMatch()
+        var matches: MatOfDMatch = MatOfDMatch()
 
         val matcher = DescriptorMatcher.create("BruteForce-Hamming")
         matcher.match(descriptors1, descriptors2, matches, Mat())
 
-        /*Core.sort(matches, matches, Core.SORT_DESCENDING)
+        // Sort matches by distance (score)
+        val matchList: List<DMatch>  = matches.toList().sortedBy { dMatch -> dMatch.distance }
+        matches = MatOfDMatch()
+        matches.fromList(matchList)
 
         val matchesSize = matches.size().height * matches.size().width
         val numGoodMatches: Int = (matchesSize * GOOD_MATCH_PERCENT).toInt()
 
-        matches = MatOfDMatch(matches.colRange(0, numGoodMatches))*/
+        matches = MatOfDMatch(matches.colRange(0, numGoodMatches))
 
         val imMatches = Mat()
         Features2d.drawMatches(img1, keypoints1, img2, keypoints2, matches, imMatches)
         savePhoto(imMatches)
+
+        val points1 = MatOfPoint2f()
+        val points2 = MatOfPoint2f()
     }
 
     private fun savePhoto(img: Mat) {
