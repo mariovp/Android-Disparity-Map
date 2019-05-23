@@ -2,30 +2,24 @@ package com.valpa.disparitymap
 
 
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.valpa.disparitymap.imageProcessing.CameraListener
+import com.valpa.disparitymap.imageProcessing.HomographyProcessor
+import com.valpa.disparitymap.imageProcessing.ImageStorage
 import kotlinx.android.synthetic.main.activity_fullscreen.*
 import org.opencv.android.*
-import org.opencv.calib3d.Calib3d
-import org.opencv.core.*
-import org.opencv.features2d.DescriptorMatcher
-import org.opencv.features2d.Features2d
-import org.opencv.features2d.ORB
-import org.opencv.imgcodecs.Imgcodecs
-import org.opencv.imgproc.Imgproc
-import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.collections.ArrayList
+import org.opencv.core.CvType
+import org.opencv.core.Mat
 
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2 {
+class FullscreenActivity : AppCompatActivity() {
     private val mHideHandler = Handler()
     private val mHidePart2Runnable = Runnable {
         // Delayed removal of status and navigation bar
@@ -59,13 +53,9 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
         false
     }
 
-    var mRgba: Mat? = null
-    var mRgbaF: Mat? = null
-    var mRgbaT: Mat? = null
-
-    var isFirstImage: Boolean = true
-    var img1: Mat? = null
-    var img2: Mat? = null
+    private val imageStorage = ImageStorage()
+    private val homographyProcessor = HomographyProcessor(imageStorage)
+    private val cameraListener = CameraListener(this, homographyProcessor)
 
     private lateinit var mOpenCvCameraView: JavaCameraView
 
@@ -95,8 +85,8 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
 
         mOpenCvCameraView = findViewById(R.id.cameraView)
         mOpenCvCameraView.setCameraIndex(0)
-        mOpenCvCameraView.setCvCameraViewListener(this)
-        fab_take_photo.setOnClickListener { takeImage() }
+        mOpenCvCameraView.setCvCameraViewListener(cameraListener)
+        fab_take_photo.setOnClickListener { cameraListener.takeImage() }
     }
 
     public override fun onResume() {
@@ -159,111 +149,6 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
         mHideHandler.postDelayed(mHideRunnable, delayMillis.toLong())
     }
 
-    override fun onCameraViewStarted(width: Int, height: Int) {
-        mRgba = Mat(height, width, CvType.CV_8UC4)
-        mRgbaF = Mat(height, width, CvType.CV_8UC4)
-        mRgbaT = Mat(width, width, CvType.CV_8UC4)
-    }
-
-    override fun onCameraViewStopped() {
-        mRgba?.release()
-    }
-
-    override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat {
-        mRgba = inputFrame?.rgba()
-        return mRgba!!
-    }
-
-    private fun takeImage() {
-        if (isFirstImage) {
-            img1 = Mat()
-            mRgba?.copyTo(img1)
-            isFirstImage = false
-            Toast.makeText(this, "Took photo 1", Toast.LENGTH_SHORT).show()
-        }
-
-        else {
-            img2 = Mat()
-            mRgba?.copyTo(img2)
-            isFirstImage = true
-            Toast.makeText(this, "Took photo 2", Toast.LENGTH_SHORT).show()
-            calculateHomography(img1!!, img2!!)
-        }
-    }
-
-    private fun calculateHomography(img1: Mat, img2: Mat) {
-
-        val MAX_FEATURES = 500
-        val GOOD_MATCH_PERCENT = 0.15f
-
-        val img1Gray = Mat()
-        val img2Gray = Mat()
-
-        Imgproc.cvtColor(img1, img1Gray, Imgproc.COLOR_RGB2GRAY)
-        Imgproc.cvtColor(img2, img2Gray, Imgproc.COLOR_RGB2GRAY)
-
-        val keypoints1 = MatOfKeyPoint()
-        val keypoints2 = MatOfKeyPoint()
-
-        val descriptors1 = Mat()
-        val descriptors2 = Mat()
-
-        val orb = ORB.create(MAX_FEATURES)
-        orb.detectAndCompute(img1Gray, Mat(), keypoints1, descriptors1)
-        orb.detectAndCompute(img2Gray, Mat(), keypoints2, descriptors2)
-
-        var matches: MatOfDMatch = MatOfDMatch()
-
-        val matcher = DescriptorMatcher.create("BruteForce-Hamming")
-        matcher.match(descriptors1, descriptors2, matches, Mat())
-
-        // Sort matches by distance (score)
-        val matchList: List<DMatch>  = matches.toList().sortedBy { dMatch -> dMatch.distance }
-
-        val numGoodMatches: Int = (matches.size().area() * GOOD_MATCH_PERCENT).toInt()
-
-        matches = MatOfDMatch()
-        matches.fromList(matchList.subList(0, numGoodMatches))
-
-        // Draw best matches and save photo
-        val imMatches = Mat()
-        Features2d.drawMatches(img1, keypoints1, img2, keypoints2, matches, imMatches)
-        savePhoto(imMatches, "matches")
-
-        val points1List = ArrayList<Point>()
-        val points2List = ArrayList<Point>()
-
-        val keypoints1List = keypoints1.toList()
-        val keypoints2List = keypoints2.toList()
-
-        for (i in 0 until matchList.size) {
-            points1List.add(keypoints1List[matchList[i].queryIdx].pt)
-            points2List.add(keypoints2List[matchList[i].trainIdx].pt)
-        }
-
-        val points1 = MatOfPoint2f()
-        points1.fromList(points1List)
-        val points2 = MatOfPoint2f()
-        points2.fromList(points2List)
-
-        val h = Calib3d.findHomography(points1, points2, Calib3d.RANSAC)
-
-        val img1Reg = Mat()
-
-        Imgproc.warpPerspective(img1, img1Reg, h, img2.size())
-
-        savePhoto(img1Reg, "corrected")
-    }
-
-    private fun savePhoto(img: Mat, name: String) {
-        val sdf = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
-        val currentDateAndTime = sdf.format(Date())
-        val fileName = Environment.getExternalStorageDirectory().path +
-                "/"+ name + "_" + currentDateAndTime + ".jpg"
-        Toast.makeText(this, "$fileName saved", Toast.LENGTH_SHORT).show()
-        //val filename = "/storage/emulated/0/DCIM/Camera/samplepass.jpg"
-        Imgcodecs.imwrite(fileName, img)
-    }
 
     companion object {
         /**
