@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_fullscreen.*
 import org.opencv.android.*
+import org.opencv.calib3d.Calib3d
 import org.opencv.core.*
 import org.opencv.features2d.DescriptorMatcher
 import org.opencv.features2d.Features2d
@@ -219,28 +220,49 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
         // Sort matches by distance (score)
         val matchList: List<DMatch>  = matches.toList().sortedBy { dMatch -> dMatch.distance }
 
-        val matchesSize = matches.size().height * matches.size().width
-        val numGoodMatches: Int = (matchesSize * GOOD_MATCH_PERCENT).toInt()
+        val numGoodMatches: Int = (matches.size().area() * GOOD_MATCH_PERCENT).toInt()
 
         matches = MatOfDMatch()
         matches.fromList(matchList.subList(0, numGoodMatches))
 
+        // Draw best matches and save photo
         val imMatches = Mat()
         Features2d.drawMatches(img1, keypoints1, img2, keypoints2, matches, imMatches)
-        savePhoto(imMatches)
+        savePhoto(imMatches, "matches")
+
+        val points1List = ArrayList<Point>()
+        val points2List = ArrayList<Point>()
+
+        val keypoints1List = keypoints1.toList()
+        val keypoints2List = keypoints2.toList()
+
+        for (i in 0 until matchList.size) {
+            points1List.add(keypoints1List[matchList[i].queryIdx].pt)
+            points2List.add(keypoints2List[matchList[i].trainIdx].pt)
+        }
 
         val points1 = MatOfPoint2f()
+        points1.fromList(points1List)
         val points2 = MatOfPoint2f()
+        points2.fromList(points2List)
+
+        val h = Calib3d.findHomography(points1, points2, Calib3d.RANSAC)
+
+        val img1Reg = Mat()
+
+        Imgproc.warpPerspective(img1, img1Reg, h, img2.size())
+
+        savePhoto(img1Reg, "corrected")
     }
 
-    private fun savePhoto(img: Mat) {
+    private fun savePhoto(img: Mat, name: String) {
         val sdf = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
-        val currentDateandTime = sdf.format(Date())
+        val currentDateAndTime = sdf.format(Date())
         val fileName = Environment.getExternalStorageDirectory().path +
-                "/sample_picture_" + currentDateandTime + ".jpg"
+                "/"+ name + "_" + currentDateAndTime + ".jpg"
         Toast.makeText(this, "$fileName saved", Toast.LENGTH_SHORT).show()
-        val filename = "/storage/emulated/0/DCIM/Camera/samplepass.jpg"
-        Imgcodecs.imwrite(filename, img)
+        //val filename = "/storage/emulated/0/DCIM/Camera/samplepass.jpg"
+        Imgcodecs.imwrite(fileName, img)
     }
 
     companion object {
