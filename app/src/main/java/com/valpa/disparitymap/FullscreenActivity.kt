@@ -175,13 +175,15 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
 
     private fun takeImage() {
         if (isFirstImage) {
-            img1 = mRgba
+            img1 = Mat()
+            mRgba?.copyTo(img1)
             isFirstImage = false
             Toast.makeText(this, "Took photo 1", Toast.LENGTH_SHORT).show()
         }
 
         else {
-            img2 = mRgba
+            img2 = Mat()
+            mRgba?.copyTo(img2)
             isFirstImage = true
             Toast.makeText(this, "Took photo 2", Toast.LENGTH_SHORT).show()
             calculateHomography(img1!!, img2!!)
@@ -216,13 +218,12 @@ class FullscreenActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVie
 
         // Sort matches by distance (score)
         val matchList: List<DMatch>  = matches.toList().sortedBy { dMatch -> dMatch.distance }
-        matches = MatOfDMatch()
-        matches.fromList(matchList)
 
         val matchesSize = matches.size().height * matches.size().width
         val numGoodMatches: Int = (matchesSize * GOOD_MATCH_PERCENT).toInt()
 
-        matches = MatOfDMatch(matches.colRange(0, numGoodMatches))
+        matches = MatOfDMatch()
+        matches.fromList(matchList.subList(0, numGoodMatches))
 
         val imMatches = Mat()
         Features2d.drawMatches(img1, keypoints1, img2, keypoints2, matches, imMatches)
