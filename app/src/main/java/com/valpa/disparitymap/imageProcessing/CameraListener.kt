@@ -6,7 +6,7 @@ import org.opencv.android.CameraBridgeViewBase
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 
-class CameraListener(private val context: Context, private val disparityMapProcessor: DisparityMapProcessor): CameraBridgeViewBase.CvCameraViewListener2 {
+class CameraListener(private val context: Context, private val homographyProcessor: HomographyProcessor, private val disparityMapProcessor: DisparityMapProcessor): CameraBridgeViewBase.CvCameraViewListener2 {
 
     var mRgba: Mat? = null
     var isFirstImage: Boolean = true
@@ -39,7 +39,8 @@ class CameraListener(private val context: Context, private val disparityMapProce
             mRgba?.copyTo(img2)
             isFirstImage = true
             Toast.makeText(context, "Took photo 2", Toast.LENGTH_SHORT).show()
-            disparityMapProcessor.calculateDisparityMap(img1!!, img2!!)
+            homographyProcessor.calculateHomography(img2!!, img1!!)
+            //disparityMapProcessor.calculateDisparityMap(img1!!, img2!!)
         }
     }
 

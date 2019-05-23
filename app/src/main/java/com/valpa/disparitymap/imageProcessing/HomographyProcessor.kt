@@ -7,7 +7,7 @@ import org.opencv.features2d.Features2d
 import org.opencv.features2d.ORB
 import org.opencv.imgproc.Imgproc
 
-class HomographyProcessor(private val imageStorage: ImageStorage) {
+class HomographyProcessor(private val imageStorage: ImageStorage, private val disparityMapProcessor: DisparityMapProcessor) {
 
     fun calculateHomography(img1: Mat, img2: Mat) {
 
@@ -68,6 +68,8 @@ class HomographyProcessor(private val imageStorage: ImageStorage) {
         Imgproc.warpPerspective(img1, img1Reg, h, img2.size())
 
         imageStorage.savePhoto(img1Reg, "corrected")
+
+        disparityMapProcessor.calculateDisparityMap(img1Reg, img2)
     }
 
     companion object {
