@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.valpa.disparitymap.imageProcessing.CameraListener
+import com.valpa.disparitymap.imageProcessing.DisparityMapProcessor
 import com.valpa.disparitymap.imageProcessing.HomographyProcessor
 import com.valpa.disparitymap.imageProcessing.ImageStorage
 import kotlinx.android.synthetic.main.activity_fullscreen.*
@@ -55,7 +56,8 @@ class FullscreenActivity : AppCompatActivity() {
 
     private val imageStorage = ImageStorage()
     private val homographyProcessor = HomographyProcessor(imageStorage)
-    private val cameraListener = CameraListener(this, homographyProcessor)
+    private val disparityMapProcessor = DisparityMapProcessor(imageStorage)
+    private val cameraListener = CameraListener(this, disparityMapProcessor)
 
     private lateinit var mOpenCvCameraView: JavaCameraView
 
