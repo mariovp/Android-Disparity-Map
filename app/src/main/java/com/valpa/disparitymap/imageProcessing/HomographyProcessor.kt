@@ -23,7 +23,7 @@ class HomographyProcessor(private val imageStorage: ImageStorage, private val di
         val descriptors1 = Mat()
         val descriptors2 = Mat()
 
-        val orb = ORB.create(MAX_FEATURES)
+        val orb = ORB.create(MAX_FEATURES,1.2f, 8, 31,0,2, ORB.HARRIS_SCORE,31, 20)
         orb.detectAndCompute(img1Gray, Mat(), keypoints1, descriptors1)
         orb.detectAndCompute(img2Gray, Mat(), keypoints2, descriptors2)
 
@@ -40,6 +40,10 @@ class HomographyProcessor(private val imageStorage: ImageStorage, private val di
         matches = MatOfDMatch()
         matches.fromList(matchList.subList(0, numGoodMatches))
 
+        /*imageStorage.savePhoto(img1, "img1")
+        imageStorage.savePhoto(img2, "img2")
+        Imgproc.cvtColor(img1, img1, Imgproc.COLOR_BGR2RGB)
+        Imgproc.cvtColor(img2, img2, Imgproc.COLOR_BGR2RGB)*/
         // Draw best matches and save photo
         val imMatches = Mat()
         Features2d.drawMatches(img1, keypoints1, img2, keypoints2, matches, imMatches)
@@ -61,15 +65,15 @@ class HomographyProcessor(private val imageStorage: ImageStorage, private val di
         val points2 = MatOfPoint2f()
         points2.fromList(points2List)
 
-        val h = Calib3d.findHomography(points1, points2, Calib3d.RANSAC)
+        val h = Calib3d.findHomography(points2, points1, Calib3d.RANSAC, 0.995)
 
-        val img1Reg = Mat()
+        val img2Reg = Mat()
 
-        Imgproc.warpPerspective(img1, img1Reg, h, img2.size())
+        Imgproc.warpPerspective(img2, img2Reg, h, img2.size())
 
-        imageStorage.savePhoto(img1Reg, "corrected")
+        imageStorage.savePhoto(img2Reg, "corrected")
 
-        disparityMapProcessor.calculateDisparityMap(img1Reg, img2)
+        disparityMapProcessor.calculateDisparityMap(img1, img2Reg)
     }
 
     companion object {
