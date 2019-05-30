@@ -28,10 +28,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        button_take_left.setOnClickListener {
-            takeLeftPhoto()
-        }
+        button_take_left.setOnClickListener { takeLeftPhoto() }
+        button_take_right.setOnClickListener { takeRightPhoto() }
+    }
 
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        restoreImageViews()
+    }
+
+    private fun restoreImageViews() {
+        with(ImageCache) {
+            leftImage?.setPic(imageView_leftPhoto)
+            rightImage?.setPic(imageView_rightPhoto)
+        }
     }
 
     private fun takeLeftPhoto() {
@@ -41,6 +51,16 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch(context = Dispatchers.Main) {
             delay(5000)
             ImageCache.leftImage?.setPic(imageView_leftPhoto)
+        }
+    }
+
+    private fun takeRightPhoto() {
+        dispatchTakePictureIntent()
+        ImageCache.rightImage = AutoLoadingBitmap(currentPhotoPath!!)
+        currentPhotoPath = null
+        GlobalScope.launch(context = Dispatchers.Main) {
+            delay(5000)
+            ImageCache.rightImage?.setPic(imageView_rightPhoto)
         }
     }
 
