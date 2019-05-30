@@ -48,10 +48,8 @@ class MainActivity : AppCompatActivity() {
     public override fun onResume() {
         super.onResume()
         if (!OpenCVLoader.initDebug()) {
-            //Log.d(FragmentActivity.TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization")
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback)
         } else {
-            //Log.d(FragmentActivity.TAG, "OpenCV library found inside package. Using it!")
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
         }
     }
@@ -64,6 +62,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun process() {
+        clearProcessImages()
+
         val leftMat = ImageCache.leftImage?.asMat()!!
         val rightMat = ImageCache.rightImage?.asMat()!!
 
@@ -92,6 +92,21 @@ class MainActivity : AppCompatActivity() {
             ImageCache.rawDisparityMap?.setPic(imageView_depthMap_raw)
             ImageCache.filteredDisparityMap?.setPic(imageView_depthMap_filtered)
         }
+    }
+
+    private fun clearProcessImages() {
+
+        with(ImageCache) {
+            matchesImage = null
+            correctedImage = null
+            rawDisparityMap = null
+            filteredDisparityMap = null
+        }
+
+        imageView_homography_points.setImageResource(R.color.gray)
+        imageView_homography_corrected.setImageResource(R.color.gray)
+        imageView_depthMap_raw.setImageResource(R.color.gray)
+        imageView_depthMap_filtered.setImageResource(R.color.gray)
     }
 
     private fun takeLeftPhoto() {
