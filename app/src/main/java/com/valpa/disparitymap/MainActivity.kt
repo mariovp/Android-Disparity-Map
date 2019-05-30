@@ -67,18 +67,23 @@ class MainActivity : AppCompatActivity() {
         val leftMat = ImageCache.leftImage?.asMat()!!
         val rightMat = ImageCache.rightImage?.asMat()!!
 
-        val matchesFile = createImageFile().absolutePath
-        val correctedFile = createImageFile().absolutePath
-
-        homographyProcessor.calculateHomography(leftMat, rightMat, matchesFile, correctedFile)
-        ImageCache.matchesImage = AutoLoadingBitmap(matchesFile)
-        ImageCache.correctedImage = AutoLoadingBitmap(correctedFile)
-
         val rawFile = createImageFile().absolutePath
         val filteredFile = createImageFile().absolutePath
-        disparityMapProcessor.calculateDisparityMap(leftMat, rightMat, rawFile, filteredFile)
         ImageCache.rawDisparityMap = AutoLoadingBitmap(rawFile)
         ImageCache.filteredDisparityMap = AutoLoadingBitmap(filteredFile)
+
+        if (checkBox_homography.isChecked) {
+            val matchesFile = createImageFile().absolutePath
+            val correctedFile = createImageFile().absolutePath
+            ImageCache.matchesImage = AutoLoadingBitmap(matchesFile)
+            ImageCache.correctedImage = AutoLoadingBitmap(correctedFile)
+
+            homographyProcessor.calculateHomography(leftMat, rightMat, matchesFile, correctedFile)
+            val rightCorrected = ImageCache.correctedImage?.asMat(1)!!
+            disparityMapProcessor.calculateDisparityMap(leftMat, rightCorrected, rawFile, filteredFile)
+        } else {
+            disparityMapProcessor.calculateDisparityMap(leftMat, rightMat, rawFile, filteredFile)
+        }
 
         GlobalScope.launch(context = Dispatchers.Main) {
             delay(5000)
@@ -112,8 +117,8 @@ class MainActivity : AppCompatActivity() {
     @Throws(IOException::class)
     private fun createImageFile(): File {
         // Create an image file name
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
         return File.createTempFile(
             "JPEG_${timeStamp}_", /* prefix */
             ".jpg", /* suffix */

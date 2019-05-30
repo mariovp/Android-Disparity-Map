@@ -18,7 +18,7 @@ class DisparityMapProcessor {
         Imgproc.cvtColor(img1, img1Gray, Imgproc.COLOR_RGB2GRAY)
         Imgproc.cvtColor(img2, img2Gray, Imgproc.COLOR_RGB2GRAY)
 
-        val minDisparity = -64
+        val minDisparity = 0
         val numDisparities = 256
         val blockSize = 11
         val P1 = 200

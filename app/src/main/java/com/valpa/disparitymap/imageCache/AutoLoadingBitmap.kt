@@ -32,8 +32,8 @@ class AutoLoadingBitmap(private val imagePath: String) {
         }
     }
 
-    fun asMat(): Mat {
-        val bmOptions = BitmapFactory.Options().apply { inSampleSize = 4 } // Scale original by 1/4
+    fun asMat(scaleBy: Int = 4): Mat {
+        val bmOptions = BitmapFactory.Options().apply { inSampleSize = scaleBy } // Scale original by 1/4
         val mat = Mat()
         BitmapFactory.decodeFile(imagePath, bmOptions)?.also { bitmap -> Utils.bitmapToMat(bitmap, mat) }
         return mat
