@@ -7,7 +7,13 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
+import com.valpa.disparitymap.imageCache.AutoLoadingBitmap
+import com.valpa.disparitymap.imageCache.ImageCache
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -23,9 +29,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         button_take_left.setOnClickListener {
-            dispatchTakePictureIntent()
+            takeLeftPhoto()
         }
 
+    }
+
+    private fun takeLeftPhoto() {
+        dispatchTakePictureIntent()
+        ImageCache.leftImage = AutoLoadingBitmap(currentPhotoPath!!)
+        currentPhotoPath = null
+        GlobalScope.launch(context = Dispatchers.Main) {
+            delay(5000)
+            ImageCache.leftImage?.setPic(imageView_leftPhoto)
+        }
     }
 
     @Throws(IOException::class)
