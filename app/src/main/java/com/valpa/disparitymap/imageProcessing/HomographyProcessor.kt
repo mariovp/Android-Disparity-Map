@@ -73,7 +73,7 @@ class HomographyProcessor(private val imageStorage: ImageStorage, private val di
 
         imageStorage.savePhoto(img2Reg, "corrected")
 
-        disparityMapProcessor.calculateDisparityMap(img1, img2Reg)
+        //disparityMapProcessor.calculateDisparityMap(img1, img2Reg)
     }
 
     companion object {

@@ -55,7 +55,7 @@ class FullscreenActivity : AppCompatActivity() {
     }
 
     private val imageStorage = ImageStorage()
-    private val disparityMapProcessor = DisparityMapProcessor(imageStorage)
+    private val disparityMapProcessor = DisparityMapProcessor()
     private val homographyProcessor = HomographyProcessor(imageStorage, disparityMapProcessor)
     private val cameraListener = CameraListener(this, homographyProcessor, disparityMapProcessor)
 

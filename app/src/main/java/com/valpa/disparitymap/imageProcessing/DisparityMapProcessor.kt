@@ -1,36 +1,22 @@
 package com.valpa.disparitymap.imageProcessing
 
-import org.opencv.calib3d.StereoBM
 import org.opencv.calib3d.StereoSGBM
-import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.Rect
+import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import org.opencv.ximgproc.Ximgproc
 
-class DisparityMapProcessor(private val imageStorage: ImageStorage) {
+class DisparityMapProcessor() {
 
-    fun calculateDisparityMap(img1: Mat, img2: Mat) {
+    fun calculateDisparityMap(img1: Mat, img2: Mat, rawMapOutput: String, filteredMapOutput: String) {
 
         val img1Gray = Mat()
         val img2Gray = Mat()
 
         Imgproc.cvtColor(img1, img1Gray, Imgproc.COLOR_RGB2GRAY)
         Imgproc.cvtColor(img2, img2Gray, Imgproc.COLOR_RGB2GRAY)
-
-        /*val stereoBM = StereoBM.create(NUM_DISPARITIES, BLOCK_SIZE)
-        stereoBM.preFilterSize = 5
-        stereoBM.preFilterCap = 61
-        stereoBM.minDisparity = -39
-        stereoBM.textureThreshold = 507
-        stereoBM.uniquenessRatio = 0
-        stereoBM.speckleWindowSize = 0
-        stereoBM.speckleRange = 8
-        stereoBM.disp12MaxDiff = 1
-
-        val disparityMap = Mat()
-        stereoBM.compute(img1Gray, img2Gray, disparityMap)*/
 
         val minDisparity = -64
         val numDisparities = 256
@@ -70,11 +56,11 @@ class DisparityMapProcessor(private val imageStorage: ImageStorage) {
         disparityWLSFilter.sigmaColor = 2.5//PrefHelper.getSigma(activity)
         disparityWLSFilter.filter(disparityMapLeft, img1Gray, disparityMatFiltered, disparityMapRight, Rect(0, 0, disparityMapLeft.cols(), disparityMapLeft.rows()), img2Gray)
 
-
         /*val disp8 = Mat()
         Core.normalize(disparityMap, disp8, 0.0, 255.0, Core.NORM_MINMAX, CvType.CV_8U)*/
 
-        imageStorage.savePhoto(disparityMatFiltered, "disparityMap", isColor=false)
+        Imgcodecs.imwrite(rawMapOutput, disparityMapLeft)
+        Imgcodecs.imwrite(filteredMapOutput, disparityMatFiltered)
     }
 
     companion object {

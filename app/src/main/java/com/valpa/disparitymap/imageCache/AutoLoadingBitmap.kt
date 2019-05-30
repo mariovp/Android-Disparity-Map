@@ -4,8 +4,6 @@ import android.graphics.BitmapFactory
 import android.widget.ImageView
 import org.opencv.android.Utils
 import org.opencv.core.Mat
-import org.opencv.core.Size
-import org.opencv.imgproc.Imgproc
 
 class AutoLoadingBitmap(private val imagePath: String) {
 
@@ -35,11 +33,9 @@ class AutoLoadingBitmap(private val imagePath: String) {
     }
 
     fun asMat(): Mat {
-        val bitmap = BitmapFactory.decodeFile(imagePath)
+        val bmOptions = BitmapFactory.Options().apply { inSampleSize = 4 } // Scale original by 1/4
         val mat = Mat()
-        Utils.bitmapToMat(bitmap, mat)
-        Imgproc.resize(mat, mat, Size(0.25, 0.25))
+        BitmapFactory.decodeFile(imagePath, bmOptions)?.also { bitmap -> Utils.bitmapToMat(bitmap, mat) }
         return mat
     }
-
 }

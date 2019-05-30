@@ -2,25 +2,30 @@ package com.valpa.disparitymap
 
 import android.content.Intent
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.valpa.disparitymap.imageCache.AutoLoadingBitmap
 import com.valpa.disparitymap.imageCache.ImageCache
+import com.valpa.disparitymap.imageProcessing.DisparityMapProcessor
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.opencv.android.BaseLoaderCallback
+import org.opencv.android.LoaderCallbackInterface
+import org.opencv.android.OpenCVLoader
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
-
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
+
+    private val disparityMapProcessor = DisparityMapProcessor()
 
     private var currentPhotoPath: String? = null
 
@@ -30,6 +35,7 @@ class MainActivity : AppCompatActivity() {
 
         button_take_left.setOnClickListener { takeLeftPhoto() }
         button_take_right.setOnClickListener { takeRightPhoto() }
+        button_process.setOnClickListener { process() }
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
@@ -37,10 +43,36 @@ class MainActivity : AppCompatActivity() {
         restoreImageViews()
     }
 
+    public override fun onResume() {
+        super.onResume()
+        if (!OpenCVLoader.initDebug()) {
+            //Log.d(FragmentActivity.TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization")
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback)
+        } else {
+            //Log.d(FragmentActivity.TAG, "OpenCV library found inside package. Using it!")
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
+        }
+    }
+
     private fun restoreImageViews() {
         with(ImageCache) {
             leftImage?.setPic(imageView_leftPhoto)
             rightImage?.setPic(imageView_rightPhoto)
+        }
+    }
+
+    private fun process() {
+        val leftMat = ImageCache.leftImage?.asMat()!!
+        val rightMat = ImageCache.rightImage?.asMat()!!
+        val rawFile = createImageFile().absolutePath
+        val filteredFile = createImageFile().absolutePath
+        disparityMapProcessor.calculateDisparityMap(leftMat, rightMat, rawFile, filteredFile)
+        ImageCache.rawDisparityMap = AutoLoadingBitmap(rawFile)
+        ImageCache.filteredDisparityMap = AutoLoadingBitmap(filteredFile)
+        GlobalScope.launch(context = Dispatchers.Main) {
+            delay(5000)
+            ImageCache.rawDisparityMap?.setPic(imageView_depthMap_raw)
+            ImageCache.filteredDisparityMap?.setPic(imageView_depthMap_filtered)
         }
     }
 
@@ -103,6 +135,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private val mLoaderCallback: BaseLoaderCallback = object: BaseLoaderCallback(this) {
     }
 
     companion object {
