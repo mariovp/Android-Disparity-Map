@@ -39,7 +39,7 @@ class CameraListener(private val context: Context, private val homographyProcess
             mRgba?.copyTo(img2)
             isFirstImage = true
             Toast.makeText(context, "Took photo 2", Toast.LENGTH_SHORT).show()
-            homographyProcessor.calculateHomography(img1!!, img2!!)
+            //homographyProcessor.calculateHomography(img1!!, img2!!)
             //disparityMapProcessor.calculateDisparityMap(img1!!, img2!!)
         }
     }

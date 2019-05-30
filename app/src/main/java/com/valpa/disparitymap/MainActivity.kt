@@ -10,6 +10,7 @@ import androidx.core.content.FileProvider
 import com.valpa.disparitymap.imageCache.AutoLoadingBitmap
 import com.valpa.disparitymap.imageCache.ImageCache
 import com.valpa.disparitymap.imageProcessing.DisparityMapProcessor
+import com.valpa.disparitymap.imageProcessing.HomographyProcessor
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -25,6 +26,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
+    private val homographyProcessor = HomographyProcessor()
     private val disparityMapProcessor = DisparityMapProcessor()
 
     private var currentPhotoPath: String? = null
@@ -64,13 +66,24 @@ class MainActivity : AppCompatActivity() {
     private fun process() {
         val leftMat = ImageCache.leftImage?.asMat()!!
         val rightMat = ImageCache.rightImage?.asMat()!!
+
+        val matchesFile = createImageFile().absolutePath
+        val correctedFile = createImageFile().absolutePath
+
+        homographyProcessor.calculateHomography(leftMat, rightMat, matchesFile, correctedFile)
+        ImageCache.matchesImage = AutoLoadingBitmap(matchesFile)
+        ImageCache.correctedImage = AutoLoadingBitmap(correctedFile)
+
         val rawFile = createImageFile().absolutePath
         val filteredFile = createImageFile().absolutePath
         disparityMapProcessor.calculateDisparityMap(leftMat, rightMat, rawFile, filteredFile)
         ImageCache.rawDisparityMap = AutoLoadingBitmap(rawFile)
         ImageCache.filteredDisparityMap = AutoLoadingBitmap(filteredFile)
+
         GlobalScope.launch(context = Dispatchers.Main) {
             delay(5000)
+            ImageCache.matchesImage?.setPic(imageView_homography_points)
+            ImageCache.correctedImage?.setPic(imageView_homography_corrected)
             ImageCache.rawDisparityMap?.setPic(imageView_depthMap_raw)
             ImageCache.filteredDisparityMap?.setPic(imageView_depthMap_filtered)
         }
@@ -81,7 +94,7 @@ class MainActivity : AppCompatActivity() {
         ImageCache.leftImage = AutoLoadingBitmap(currentPhotoPath!!)
         currentPhotoPath = null
         GlobalScope.launch(context = Dispatchers.Main) {
-            delay(5000)
+            delay(8000)
             ImageCache.leftImage?.setPic(imageView_leftPhoto)
         }
     }

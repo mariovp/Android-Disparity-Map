@@ -5,11 +5,12 @@ import org.opencv.core.*
 import org.opencv.features2d.DescriptorMatcher
 import org.opencv.features2d.Features2d
 import org.opencv.features2d.ORB
+import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 
-class HomographyProcessor(private val imageStorage: ImageStorage, private val disparityMapProcessor: DisparityMapProcessor) {
+class HomographyProcessor() {
 
-    fun calculateHomography(img1: Mat, img2: Mat) {
+    fun calculateHomography(img1: Mat, img2: Mat, matchesOutput: String, correctedOutput: String) {
 
         val img1Gray = Mat()
         val img2Gray = Mat()
@@ -41,13 +42,15 @@ class HomographyProcessor(private val imageStorage: ImageStorage, private val di
         matches.fromList(matchList.subList(0, numGoodMatches))
 
         /*imageStorage.savePhoto(img1, "img1")
-        imageStorage.savePhoto(img2, "img2")
+        imageStorage.savePhoto(img2, "img2")*/
         Imgproc.cvtColor(img1, img1, Imgproc.COLOR_BGR2RGB)
-        Imgproc.cvtColor(img2, img2, Imgproc.COLOR_BGR2RGB)*/
+        Imgproc.cvtColor(img2, img2, Imgproc.COLOR_BGR2RGB)
         // Draw best matches and save photo
         val imMatches = Mat()
         Features2d.drawMatches(img1, keypoints1, img2, keypoints2, matches, imMatches)
-        imageStorage.savePhoto(imMatches, "matches")
+
+        Imgcodecs.imwrite(matchesOutput, imMatches)
+        //imageStorage.savePhoto(imMatches, "matches")
 
         val points1List = ArrayList<Point>()
         val points2List = ArrayList<Point>()
@@ -71,8 +74,8 @@ class HomographyProcessor(private val imageStorage: ImageStorage, private val di
 
         Imgproc.warpPerspective(img2, img2Reg, h, img2.size())
 
-        imageStorage.savePhoto(img2Reg, "corrected")
-
+        Imgcodecs.imwrite(correctedOutput, img2Reg)
+        //imageStorage.savePhoto(img2Reg, "corrected")
         //disparityMapProcessor.calculateDisparityMap(img1, img2Reg)
     }
 

@@ -8,7 +8,7 @@ import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import org.opencv.ximgproc.Ximgproc
 
-class DisparityMapProcessor() {
+class DisparityMapProcessor {
 
     fun calculateDisparityMap(img1: Mat, img2: Mat, rawMapOutput: String, filteredMapOutput: String) {
 
@@ -61,13 +61,6 @@ class DisparityMapProcessor() {
 
         Imgcodecs.imwrite(rawMapOutput, disparityMapLeft)
         Imgcodecs.imwrite(filteredMapOutput, disparityMatFiltered)
-    }
-
-    companion object {
-
-        private const val NUM_DISPARITIES = 112
-        private const val BLOCK_SIZE = 9
-
     }
 
 }
