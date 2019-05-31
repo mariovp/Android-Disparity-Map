@@ -9,27 +9,27 @@
     <ImageView
         android:id="@+id/imageView_leftPhoto"
         android:layout_width="0dp"
-        android:layout_height="90dp"
+        android:layout_height="140dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="4dp"
         app:layout_constraintEnd_toStartOf="@+id/imageView_rightPhoto"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView_photo_title_left"
+        app:layout_constraintTop_toBottomOf="@+id/textView_photo_title"
         app:srcCompat="@color/gray" />
 
     <ImageView
         android:id="@+id/imageView_rightPhoto"
         android:layout_width="0dp"
-        android:layout_height="90dp"
+        android:layout_height="140dp"
         android:layout_marginStart="4dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/imageView_leftPhoto"
-        app:layout_constraintTop_toBottomOf="@+id/textView_photo_title_right"
+        app:layout_constraintTop_toBottomOf="@+id/textView_photo_title"
         app:srcCompat="@color/gray" />
 
     <TextView
@@ -37,33 +37,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:text="Captured Photos"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:textColor="@android:color/black"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/textView_photo_title_left"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Left"
-        app:layout_constraintEnd_toEndOf="@+id/imageView_leftPhoto"
-        app:layout_constraintStart_toStartOf="@+id/imageView_leftPhoto"
-        app:layout_constraintTop_toBottomOf="@+id/textView_photo_title" />
-
-    <TextView
-        android:id="@+id/textView_photo_title_right"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:text="Right"
-        app:layout_constraintEnd_toEndOf="@+id/imageView_rightPhoto"
-        app:layout_constraintStart_toStartOf="@+id/imageView_rightPhoto"
-        app:layout_constraintTop_toBottomOf="@+id/textView_photo_title" />
 
 
     <CheckBox
@@ -71,7 +50,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:text="Homography Correction"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintStart_toStartOf="parent"
@@ -80,8 +58,8 @@
     <ImageView
         android:id="@+id/imageView_homography_points"
         android:layout_width="320dp"
-        android:layout_height="90dp"
-        android:layout_marginTop="8dp"
+        android:layout_height="120dp"
+        android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -93,7 +71,7 @@
         android:layout_width="160dp"
         android:layout_height="90dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -105,7 +83,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:text="Depth Map"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:textColor="@android:color/black"
@@ -127,18 +104,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:text="Raw Depth Map"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/imageView_depthMap_filtered"
+        app:layout_constraintStart_toStartOf="@+id/imageView_depthMap_raw"
         app:layout_constraintTop_toBottomOf="@+id/textView_title_depthMap" />
 
     <ImageView
         android:id="@+id/imageView_depthMap_raw"
-        android:layout_width="160dp"
-        android:layout_height="90dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="0dp"
+        android:layout_height="140dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="4dp"
+        app:layout_constraintEnd_toStartOf="@+id/imageView_depthMap_filtered"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView_title_depthMap_raw"
         app:srcCompat="@color/gray" />
@@ -147,21 +126,20 @@
         android:id="@+id/textView_title_depthMap_filtered"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:text="WLS Filtered Depth Map"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView_depthMap_raw" />
+        app:layout_constraintEnd_toEndOf="@+id/imageView_depthMap_filtered"
+        app:layout_constraintStart_toStartOf="@+id/imageView_depthMap_filtered"
+        app:layout_constraintTop_toTopOf="@+id/textView_title_depthMap_raw" />
 
     <ImageView
         android:id="@+id/imageView_depthMap_filtered"
-        android:layout_width="160dp"
-        android:layout_height="90dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_width="0dp"
+        android:layout_height="140dp"
+        android:layout_marginStart="4dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/imageView_depthMap_raw"
         app:layout_constraintTop_toBottomOf="@+id/textView_title_depthMap_filtered"
         app:srcCompat="@color/gray" />
 
