@@ -16,8 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.opencv.android.BaseLoaderCallback
-import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
 import java.io.File
 import java.io.IOException
@@ -40,18 +38,10 @@ class MainActivity : AppCompatActivity() {
         button_process.setOnClickListener { process() }
     }
 
-    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
-        super.onRestoreInstanceState(savedInstanceState)
-        restoreImageViews()
-    }
-
     public override fun onResume() {
         super.onResume()
-        if (!OpenCVLoader.initDebug()) {
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback)
-        } else {
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
-        }
+        OpenCVLoader.initDebug()
+        restoreImageViews()
     }
 
     private fun restoreImageViews() {
@@ -110,23 +100,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun takeLeftPhoto() {
-        dispatchTakePictureIntent()
+        dispatchTakePictureIntent(REQUEST_TAKE_LEFT_PHOTO)
         ImageCache.leftImage = AutoLoadingBitmap(currentPhotoPath!!)
         currentPhotoPath = null
-        GlobalScope.launch(context = Dispatchers.Main) {
-            delay(8000)
-            ImageCache.leftImage?.setPic(imageView_leftPhoto)
-        }
     }
 
     private fun takeRightPhoto() {
-        dispatchTakePictureIntent()
+        dispatchTakePictureIntent(REQUEST_TAKE_RIGHT_PHOTO)
         ImageCache.rightImage = AutoLoadingBitmap(currentPhotoPath!!)
         currentPhotoPath = null
-        GlobalScope.launch(context = Dispatchers.Main) {
-            delay(5000)
-            ImageCache.rightImage?.setPic(imageView_rightPhoto)
-        }
     }
 
     @Throws(IOException::class)
@@ -144,7 +126,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun dispatchTakePictureIntent() {
+    private fun dispatchTakePictureIntent(photoToTake: Int) {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
             // Ensure that there's a camera activity to handle the intent
             takePictureIntent.resolveActivity(packageManager)?.also {
@@ -164,17 +146,24 @@ class MainActivity : AppCompatActivity() {
                         it
                     )
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
+                    startActivityForResult(takePictureIntent, photoToTake)
                 }
             }
         }
     }
 
-    private val mLoaderCallback: BaseLoaderCallback = object: BaseLoaderCallback(this) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == RESULT_OK) {
+            when(requestCode) {
+                REQUEST_TAKE_LEFT_PHOTO -> ImageCache.leftImage?.setPic(imageView_leftPhoto)
+                REQUEST_TAKE_RIGHT_PHOTO -> ImageCache.rightImage?.setPic(imageView_rightPhoto)
+            }
+        }
     }
 
     companion object {
-        const val REQUEST_TAKE_PHOTO = 1
+        const val REQUEST_TAKE_LEFT_PHOTO = 1
+        const val REQUEST_TAKE_RIGHT_PHOTO = 2
     }
 
 }
