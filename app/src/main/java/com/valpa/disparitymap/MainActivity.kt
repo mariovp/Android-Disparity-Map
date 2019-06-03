@@ -33,6 +33,10 @@ class MainActivity : AppCompatActivity() {
         button_take_left.setOnClickListener { takeLeftPhoto() }
         button_take_right.setOnClickListener { takeRightPhoto() }
         button_process.setOnClickListener { process() }
+
+        button_depthMap_settings.setOnClickListener {
+            StereoParametersDialog().show(supportFragmentManager, "StereoParamsDialog")
+        }
     }
 
     public override fun onResume() {
