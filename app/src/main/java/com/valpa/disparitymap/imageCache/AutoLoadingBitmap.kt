@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import android.widget.ImageView
 import org.opencv.android.Utils
 import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
 
 class AutoLoadingBitmap(private val imagePath: String) {
 
@@ -38,4 +39,12 @@ class AutoLoadingBitmap(private val imagePath: String) {
         BitmapFactory.decodeFile(imagePath, bmOptions)?.also { bitmap -> Utils.bitmapToMat(bitmap, mat) }
         return mat
     }
+
+    fun asGrayMat(): Mat {
+        val mat = asMat(1)
+        val matGray = Mat()
+        Imgproc.cvtColor(mat, matGray, Imgproc.COLOR_RGB2GRAY)
+        return matGray
+    }
+
 }

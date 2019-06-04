@@ -5,6 +5,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.view.MotionEvent
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.valpa.disparitymap.imageCache.AutoLoadingBitmap
@@ -14,6 +16,7 @@ import com.valpa.disparitymap.imageProcessing.HomographyProcessor
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import org.opencv.android.OpenCVLoader
+import org.opencv.core.Mat
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -37,6 +40,39 @@ class MainActivity : AppCompatActivity() {
         button_depthMap_settings.setOnClickListener {
             StereoParametersDialog().show(supportFragmentManager, "StereoParamsDialog")
         }
+
+        imageView_depthMap_filtered.setOnTouchListener(object: View.OnTouchListener {
+
+            private var disparityMat: Mat? = null
+
+            override fun onTouch(v: View?, motionEvent: MotionEvent): Boolean {
+
+                ImageCache.filteredDisparityMap?.let {
+
+                    if (disparityMat == null)
+                        disparityMat = it.asGrayMat()
+
+                    val x = motionEvent.x.toInt()
+                    val y = motionEvent.y.toInt()
+
+                    val valueDisparity = disparityMat!!.get(x, y)
+                    val f = 24 * disparityMat!!.width()
+                    val b = 0.15
+                    var D = 1.0
+
+                    if (valueDisparity != null) {
+                        D = b * f / (valueDisparity[0])
+                    }
+
+                    D = "%.2f".format(D).toDouble()
+
+                    textView_distance.text = "Distancia: \n$D cm"
+                }
+
+                return true
+            }
+        })
+
     }
 
     public override fun onResume() {
