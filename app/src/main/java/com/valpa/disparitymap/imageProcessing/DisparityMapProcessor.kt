@@ -18,16 +18,16 @@ class DisparityMapProcessor {
         Imgproc.cvtColor(img1, img1Gray, Imgproc.COLOR_RGB2GRAY)
         Imgproc.cvtColor(img2, img2Gray, Imgproc.COLOR_RGB2GRAY)
 
-        val minDisparity = 0
-        val numDisparities = 256
-        val blockSize = 11
-        val P1 = 200
-        val P2 = 400
-        val disp12MaxDiff = 10
-        val preFilterCap = 4
-        val uniquenessRatio = 1
-        val speckleWindowSize = 200
-        val speckleRange = 16
+        val minDisparity = DisparityParams.minDisparity
+        val numDisparities = DisparityParams.numDisparities
+        val blockSize = DisparityParams.blockSize
+        val P1 = DisparityParams.P1
+        val P2 = DisparityParams.P2
+        val disp12MaxDiff = DisparityParams.disp12MaxDiff
+        val preFilterCap = DisparityParams.preFilterCap
+        val uniquenessRatio = DisparityParams.uniquenessRatio
+        val speckleWindowSize = DisparityParams.speckleWindowSize
+        val speckleRange = DisparityParams.speckleRange
         val mode = StereoSGBM.MODE_SGBM
 
         val leftStereoSGBM = StereoSGBM.create(
