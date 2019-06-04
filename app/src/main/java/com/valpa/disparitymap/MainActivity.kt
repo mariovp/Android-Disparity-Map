@@ -5,14 +5,20 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.valpa.disparitymap.imageCache.AutoLoadingBitmap
-import com.valpa.disparitymap.imageCache.ImageCache
 import com.valpa.disparitymap.imageProcessing.DisparityMapProcessor
 import com.valpa.disparitymap.imageProcessing.HomographyProcessor
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.opencv.android.OpenCVLoader
 import java.io.File
 import java.io.IOException
@@ -26,6 +32,8 @@ class MainActivity : AppCompatActivity() {
 
     private var currentPhotoPath: String? = null
 
+    private val viewModel: MainViewModel by lazy { ViewModelProviders.of(this).get(MainViewModel::class.java) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -37,83 +45,90 @@ class MainActivity : AppCompatActivity() {
         button_depthMap_settings.setOnClickListener {
             StereoParametersDialog().show(supportFragmentManager, "StereoParamsDialog")
         }
+
+        viewModel.matchesImage.observe(this, ImageViewObserver(imageView_homography_points))
+        viewModel.correctedImage.observe(this, ImageViewObserver(imageView_homography_corrected))
+        viewModel.rawDisparityMap.observe(this, ImageViewObserver(imageView_depthMap_raw))
+        viewModel.rawDisparityMap.observe(this, ImageViewObserver(imageView_depthMap_filtered))
     }
 
     public override fun onResume() {
         super.onResume()
         OpenCVLoader.initDebug()
-        restoreImageViews()
+        //restoreImageViews()
     }
 
-    private fun restoreImageViews() {
+    /*private fun restoreImageViews() {
         with(ImageCache) {
             leftImage?.setPic(imageView_leftPhoto)
             rightImage?.setPic(imageView_rightPhoto)
         }
-    }
+    }*/
 
     private fun process() {
         GlobalScope.launch(context = Dispatchers.Main) {
-            clearProcessedImages()
+            //clearProcessedImages()
             processImages()
-            showProcessedImages()
+            //showProcessedImages()
         }
     }
 
     private suspend fun processImages() = withContext(Dispatchers.Default) {
-        val leftMat = ImageCache.leftImage?.asMat()!!
-        val rightMat = ImageCache.rightImage?.asMat()!!
+        val leftMat = viewModel.leftImage.value?.asMat()!!
+        val rightMat = viewModel.rightImage.value?.asMat()!!
 
         val rawFile = createImageFile().absolutePath
         val filteredFile = createImageFile().absolutePath
-        ImageCache.rawDisparityMap = AutoLoadingBitmap(rawFile)
-        ImageCache.filteredDisparityMap = AutoLoadingBitmap(filteredFile)
 
         if (checkBox_homography.isChecked) {
             val matchesFile = createImageFile().absolutePath
             val correctedFile = createImageFile().absolutePath
-            ImageCache.matchesImage = AutoLoadingBitmap(matchesFile)
-            ImageCache.correctedImage = AutoLoadingBitmap(correctedFile)
 
             homographyProcessor.calculateHomography(leftMat, rightMat, matchesFile, correctedFile)
-            val rightCorrected = ImageCache.correctedImage?.asMat(1)!!
+            viewModel.matchesImage.value = (AutoLoadingBitmap(matchesFile))
+            viewModel.correctedImage.value = (AutoLoadingBitmap(correctedFile))
+
+            val rightCorrected = viewModel.correctedImage.value?.asMat(1)!!
             disparityMapProcessor.calculateDisparityMap(leftMat, rightCorrected, rawFile, filteredFile)
         } else {
             disparityMapProcessor.calculateDisparityMap(leftMat, rightMat, rawFile, filteredFile)
         }
+
+        viewModel.rawDisparityMap.value = (AutoLoadingBitmap(rawFile))
+        viewModel.filteredDisparityMap.value = (AutoLoadingBitmap(filteredFile))
     }
 
-    private fun clearProcessedImages() {
+    /*private fun clearProcessedImages() {
 
-        with(ImageCache) {
-            matchesImage = null
-            correctedImage = null
-            rawDisparityMap = null
-            filteredDisparityMap = null
+        with(viewModel) {
+            matchesImage.postValue(null)
+            correctedImage.postValue(null)
+            rawDisparityMap.postValue(null)
+            filteredDisparityMap.postValue(null)
         }
 
         imageView_homography_points.setImageResource(R.color.gray)
         imageView_homography_corrected.setImageResource(R.color.gray)
         imageView_depthMap_raw.setImageResource(R.color.gray)
         imageView_depthMap_filtered.setImageResource(R.color.gray)
-    }
+    }*/
 
-    private fun showProcessedImages() {
+    /*private fun showProcessedImages() {
         ImageCache.matchesImage?.setPic(imageView_homography_points)
         ImageCache.correctedImage?.setPic(imageView_homography_corrected)
         ImageCache.rawDisparityMap?.setPic(imageView_depthMap_raw)
         ImageCache.filteredDisparityMap?.setPic(imageView_depthMap_filtered)
-    }
+    }*/
 
     private fun takeLeftPhoto() {
         dispatchTakePictureIntent(REQUEST_TAKE_LEFT_PHOTO)
-        ImageCache.leftImage = AutoLoadingBitmap(currentPhotoPath!!)
+        viewModel.leftImage.postValue(AutoLoadingBitmap(currentPhotoPath!!))
         currentPhotoPath = null
     }
 
     private fun takeRightPhoto() {
         dispatchTakePictureIntent(REQUEST_TAKE_RIGHT_PHOTO)
-        ImageCache.rightImage = AutoLoadingBitmap(currentPhotoPath!!)
+        viewModel.rightImage.postValue(AutoLoadingBitmap(currentPhotoPath!!))
         currentPhotoPath = null
     }
 
@@ -161,11 +176,26 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == RESULT_OK) {
             when(requestCode) {
-                REQUEST_TAKE_LEFT_PHOTO -> ImageCache.leftImage?.setPic(imageView_leftPhoto)
-                REQUEST_TAKE_RIGHT_PHOTO -> ImageCache.rightImage?.setPic(imageView_rightPhoto)
+                REQUEST_TAKE_LEFT_PHOTO -> viewModel.leftImage.value?.setPic(imageView_leftPhoto)
+                REQUEST_TAKE_RIGHT_PHOTO -> viewModel.rightImage.value?.setPic(imageView_rightPhoto)
             }
         }
     }
+
+    class ImageViewObserver(private val imageView: ImageView): Observer<AutoLoadingBitmap> {
+        override fun onChanged(t: AutoLoadingBitmap?) {
+            if (t != null) {
+                Log.d("MainActivity", "Set pic")
+                t.setPic(imageView)
+            } else {
+                Log.d("MainActivity", "Set gray")
+                imageView.setImageResource(R.color.gray)
+            }
+
+        }
+    }
+
+
 
     companion object {
         const val REQUEST_TAKE_LEFT_PHOTO = 1
