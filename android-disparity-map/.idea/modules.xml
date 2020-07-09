@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/android-disparity-map.iml" filepath="$PROJECT_DIR$/.idea/android-disparity-map.iml" group="android-disparity-map" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="android-disparity-map/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/openCVLibrary340dev/openCVLibrary340dev.iml" filepath="$PROJECT_DIR$/.idea/modules/openCVLibrary340dev/openCVLibrary340dev.iml" group="android-disparity-map/openCVLibrary340dev" />
+    </modules>
+  </component>
+</project>
