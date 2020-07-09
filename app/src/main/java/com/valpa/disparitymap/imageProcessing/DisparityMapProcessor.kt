@@ -1,6 +1,7 @@
 package com.valpa.disparitymap.imageProcessing
 
 import org.opencv.calib3d.StereoSGBM
+import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.Rect
@@ -56,11 +57,11 @@ class DisparityMapProcessor {
         disparityWLSFilter.sigmaColor = 2.5//PrefHelper.getSigma(activity)
         disparityWLSFilter.filter(disparityMapLeft, img1Gray, disparityMatFiltered, disparityMapRight, Rect(0, 0, disparityMapLeft.cols(), disparityMapLeft.rows()), img2Gray)
 
-        /*val disp8 = Mat()
-        Core.normalize(disparityMap, disp8, 0.0, 255.0, Core.NORM_MINMAX, CvType.CV_8U)*/
+        val disp8 = Mat()
+        Core.normalize(disparityMatFiltered, disp8, 0.0, 255.0, Core.NORM_MINMAX, CvType.CV_8U)
 
         Imgcodecs.imwrite(rawMapOutput, disparityMapLeft)
-        Imgcodecs.imwrite(filteredMapOutput, disparityMatFiltered)
+        Imgcodecs.imwrite(filteredMapOutput, disp8)
     }
 
 }

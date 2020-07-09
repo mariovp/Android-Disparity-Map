@@ -74,7 +74,10 @@ class HomographyProcessor() {
 
         Imgproc.warpPerspective(img2, img2Reg, h, img2.size())
 
-        Imgcodecs.imwrite(correctedOutput, img2Reg)
+        val imgNorm = Mat()
+        Core.normalize(img2Reg, imgNorm, 0.0, 255.0, Core.NORM_MINMAX, CvType.CV_8U)
+
+        Imgcodecs.imwrite(correctedOutput, imgNorm)
         //imageStorage.savePhoto(img2Reg, "corrected")
         //disparityMapProcessor.calculateDisparityMap(img1, img2Reg)
     }

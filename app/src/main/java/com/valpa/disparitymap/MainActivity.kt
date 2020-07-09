@@ -195,6 +195,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
             when(requestCode) {
                 REQUEST_TAKE_LEFT_PHOTO -> ImageCache.leftImage?.setPic(imageView_leftPhoto)
