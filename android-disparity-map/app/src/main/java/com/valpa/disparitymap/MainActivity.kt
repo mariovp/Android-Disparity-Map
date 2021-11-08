@@ -9,11 +9,11 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import com.valpa.disparitymap.databinding.ActivityMainBinding
 import com.valpa.disparitymap.imageCache.AutoLoadingBitmap
 import com.valpa.disparitymap.imageCache.ImageCache
 import com.valpa.disparitymap.imageProcessing.DisparityMapProcessor
 import com.valpa.disparitymap.imageProcessing.HomographyProcessor
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.Mat
@@ -29,19 +29,23 @@ class MainActivity : AppCompatActivity() {
 
     private var currentPhotoPath: String? = null
 
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
-        button_take_left.setOnClickListener { takeLeftPhoto() }
-        button_take_right.setOnClickListener { takeRightPhoto() }
-        button_process.setOnClickListener { process() }
+        binding.buttonTakeLeft.setOnClickListener { takeLeftPhoto() }
+        binding.buttonTakeRight.setOnClickListener { takeRightPhoto() }
+        binding.buttonProcess.setOnClickListener { process() }
 
-        button_depthMap_settings.setOnClickListener {
+        binding.buttonDepthMapSettings.setOnClickListener {
             StereoParametersDialog().show(supportFragmentManager, "StereoParamsDialog")
         }
 
-        imageView_depthMap_filtered.setOnTouchListener(object: View.OnTouchListener {
+        binding.imageViewDepthMapFiltered.setOnTouchListener(object: View.OnTouchListener {
 
             private var disparityMat: Mat? = null
 
@@ -66,7 +70,7 @@ class MainActivity : AppCompatActivity() {
 
                     D = "%.2f".format(D).toDouble()
 
-                    textView_distance.text = "Distancia: \n$D cm"
+                    binding.textViewDistance.text = "Distancia: \n$D cm"
                 }
 
                 return true
@@ -83,8 +87,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun restoreImageViews() {
         with(ImageCache) {
-            leftImage?.setPic(imageView_leftPhoto)
-            rightImage?.setPic(imageView_rightPhoto)
+            leftImage?.setPic(binding.imageViewLeftPhoto)
+            rightImage?.setPic(binding.imageViewRightPhoto)
         }
     }
 
@@ -105,7 +109,7 @@ class MainActivity : AppCompatActivity() {
         ImageCache.rawDisparityMap = AutoLoadingBitmap(rawFile)
         ImageCache.filteredDisparityMap = AutoLoadingBitmap(filteredFile)
 
-        if (checkBox_homography.isChecked) {
+        if (binding.checkBoxHomography.isChecked) {
             val matchesFile = createImageFile().absolutePath
             val correctedFile = createImageFile().absolutePath
             ImageCache.matchesImage = AutoLoadingBitmap(matchesFile)
@@ -128,17 +132,17 @@ class MainActivity : AppCompatActivity() {
             filteredDisparityMap = null
         }
 
-        imageView_homography_points.setImageResource(R.color.gray)
-        imageView_homography_corrected.setImageResource(R.color.gray)
-        imageView_depthMap_raw.setImageResource(R.color.gray)
-        imageView_depthMap_filtered.setImageResource(R.color.gray)
+        binding.imageViewHomographyPoints.setImageResource(R.color.gray)
+        binding.imageViewHomographyCorrected.setImageResource(R.color.gray)
+        binding.imageViewDepthMapRaw.setImageResource(R.color.gray)
+        binding.imageViewDepthMapFiltered.setImageResource(R.color.gray)
     }
 
     private fun showProcessedImages() {
-        ImageCache.matchesImage?.setPic(imageView_homography_points)
-        ImageCache.correctedImage?.setPic(imageView_homography_corrected)
-        ImageCache.rawDisparityMap?.setPic(imageView_depthMap_raw)
-        ImageCache.filteredDisparityMap?.setPic(imageView_depthMap_filtered)
+        ImageCache.matchesImage?.setPic(binding.imageViewHomographyPoints)
+        ImageCache.correctedImage?.setPic(binding.imageViewHomographyCorrected)
+        ImageCache.rawDisparityMap?.setPic(binding.imageViewDepthMapRaw)
+        ImageCache.filteredDisparityMap?.setPic(binding.imageViewDepthMapFiltered)
     }
 
     private fun takeLeftPhoto() {
@@ -198,8 +202,8 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
             when(requestCode) {
-                REQUEST_TAKE_LEFT_PHOTO -> ImageCache.leftImage?.setPic(imageView_leftPhoto)
-                REQUEST_TAKE_RIGHT_PHOTO -> ImageCache.rightImage?.setPic(imageView_rightPhoto)
+                REQUEST_TAKE_LEFT_PHOTO -> ImageCache.leftImage?.setPic(binding.imageViewLeftPhoto)
+                REQUEST_TAKE_RIGHT_PHOTO -> ImageCache.rightImage?.setPic(binding.imageViewRightPhoto)
             }
         }
     }
